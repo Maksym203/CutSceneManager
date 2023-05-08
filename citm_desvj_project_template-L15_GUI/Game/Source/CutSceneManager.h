@@ -25,7 +25,7 @@ public:
 
 	bool CleanUp();
 
-	void StartCutScene(int x, int y, int speed, bool bordered, int time );
+	void StartCutScene(bool startTP, int fadeSpeed, int x, int y, int speed, bool bordered, int time );
 
 	void EndCutScene();
 
@@ -33,7 +33,11 @@ public:
 	bool CutsceneStarted = false;
 private:
 	float X, Xdif, Xsum, Y, Ydif, Ysum, Speed, Time;
-	bool Border = false, TimeStart = false, BorderAnimation = false;
+	bool Border = false, TimeStart = false, BorderAnimation = false, StartTP = false;
+
+	//Fading
+	int fading = 0, fadingS = 5;
+	bool faded = false;
 
 	float Timer1, Timer2;
 	int Upperborder = 0, Yoffset = 0;

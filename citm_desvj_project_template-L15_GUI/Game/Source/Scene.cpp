@@ -130,7 +130,13 @@ bool Scene::Update(float dt)
 
 	//Start the cutscene
 	if (app->input->GetKey(SDL_SCANCODE_G) == KEY_DOWN) {
-		app->cutScene->StartCutScene(-300,-100, 100, true, 10000);
+		app->cutScene->StartCutScene(true, 2,-300,-100, 100, false, 10000);
+	}
+	if (app->input->GetKey(SDL_SCANCODE_F) == KEY_DOWN) {
+		app->cutScene->StartCutScene(false, 2, -500, -50, 100, true, 10000);
+	}
+	if (app->input->GetKey(SDL_SCANCODE_D) == KEY_DOWN) {
+		app->cutScene->EndCutScene();
 	}
 	// L08: DONE 3: Test World to map method
 
