@@ -10,7 +10,6 @@
 #include "Physics.h"
 #include "Pathfinding.h"
 #include "GuiManager.h"
-#include "CutSceneManager.h"
 
 #include "Defs.h"
 #include "Log.h"
@@ -37,7 +36,6 @@ App::App(int argc, char* args[]) : argc(argc), args(args)
 	entityManager = new EntityManager();
 	map = new Map();
 	guiManager = new GuiManager();
-	cutScene = new CutScene();
 
 	// Ordered for awake / Start / Update
 	// Reverse order of CleanUp
@@ -52,7 +50,6 @@ App::App(int argc, char* args[]) : argc(argc), args(args)
 	AddModule(entityManager);
 	AddModule(map);
 	AddModule(guiManager);
-	AddModule(cutScene);
 
 	// Render last to swap buffer
 	AddModule(render);

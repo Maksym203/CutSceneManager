@@ -9,7 +9,6 @@
 #include "Map.h"
 #include "PathFinding.h"
 #include "GuiManager.h"
-#include "CutSceneManager.h"
 
 #include "Defs.h"
 #include "Log.h"
@@ -125,70 +124,171 @@ bool Scene::Update(float dt)
 
 	// Draw map
 	app->map->Draw();
+
 	//L15: Draw GUI
 	app->guiManager->Draw();
 
-	//Start the cutscene
 	if (app->input->GetKey(SDL_SCANCODE_G) == KEY_DOWN) {
-		app->cutScene->StartCutScene(true, 2,-300,-100, 100, false, 10000);
+		StartCutscene(-300,-500,true,true,100, true);
 	}
 	if (app->input->GetKey(SDL_SCANCODE_F) == KEY_DOWN) {
-		app->cutScene->StartCutScene(false, 2, -500, -50, 100, true, 10000);
+		StartCutscene(-500, 0, true, false, 100, true);
 	}
-	if (app->input->GetKey(SDL_SCANCODE_D) == KEY_DOWN) {
-		app->cutScene->EndCutScene();
+	if (app->input->GetKey(SDL_SCANCODE_H) == KEY_DOWN) {
+		StartCutscene(-100, -600, true, false, 100, true);
 	}
-	// L08: DONE 3: Test World to map method
-
-	/*
-	int mouseX, mouseY;
-	app->input->GetMousePosition(mouseX, mouseY);
-
-	iPoint mouseTile = iPoint(0, 0); 
-
-	if (app->map->mapData.type == MapTypes::MAPTYPE_ISOMETRIC) {
-		mouseTile = app->map->WorldToMap(mouseX - app->render->camera.x - app->map->mapData.tileWidth / 2,
-												mouseY - app->render->camera.y - app->map->mapData.tileHeight / 2);
-	}
-	if (app->map->mapData.type == MapTypes::MAPTYPE_ORTHOGONAL) {
-		mouseTile = app->map->WorldToMap(mouseX - app->render->camera.x,
-												mouseY - app->render->camera.y);
+	if (app->input->GetKey(SDL_SCANCODE_J) == KEY_DOWN) {
+		FinishCutscene();
 	}
 
-	//Convert again the tile coordinates to world coordinates to render the texture of the tile
-	iPoint highlightedTileWorld = app->map->MapToWorld(mouseTile.x, mouseTile.y);
-	app->render->DrawTexture(mouseTileTex, highlightedTileWorld.x, highlightedTileWorld.y);
+	//To keep borders in between animations
+	if (KeepBorders == true) {
+		app->render->DrawRectangle({ -app->render->camera.x, -app->render->camera.y - 100 + BorderOffset,1280,100 }, 0, 0, 0);
+		app->render->DrawRectangle({ -app->render->camera.x, -app->render->camera.y + 720 - BorderOffset,1280,100 }, 0, 0, 0);
+	}
 
-	//Test compute path function
-	if (app->input->GetMouseButtonDown(SDL_BUTTON_LEFT) == KEY_DOWN)
-	{
-		if (originSelected == true)
-		{
-			app->pathfinding->CreatePath(origin, mouseTile);
-			originSelected = false;
-		}
-		else
-		{
-			origin = mouseTile;
-			originSelected = true;
-			app->pathfinding->ClearLastPath();
+	//Border animation to finish cutscene
+	if (FinishCutsceneAux == true) {
+		if (BorderOffset > 0) {
+			BorderOffset -= 2;
+			if (BorderOffset <= 0) {
+				BorderOffset = 0;
+				EndCutscene();
+			}
 		}
 	}
 
-	// L12: Get the latest calculated path and draw
-	const DynArray<iPoint>* path = app->pathfinding->GetLastPath();
-	for (uint i = 0; i < path->Count(); ++i)
-	{
-		iPoint pos = app->map->MapToWorld(path->At(i)->x, path->At(i)->y);
-		app->render->DrawTexture(mouseTileTex, pos.x, pos.y);
+	if (CutsceneStarted == true) {
+		//Border animation
+		if (Bordered == true && TP == false) {
+			app->render->DrawRectangle({ -app->render->camera.x, -app->render->camera.y - 100 + BorderOffset,1280,100 }, 0, 0, 0);
+			app->render->DrawRectangle({ -app->render->camera.x, -app->render->camera.y + 720 - BorderOffset,1280,100 }, 0, 0, 0);
+			if (BorderOffset < 100) {
+				BorderOffset += 2;
+				if (BorderOffset >= 100) {
+					BorderOffset = 100;
+					BorderAnimation = true;
+				}
+			}
+		}
+		if (TP == true) {
+			app->render->DrawRectangle({ -app->render->camera.x, -app->render->camera.y,1280,1280 }, 0, 0, 0, fading);
+			if (fading < 255 && FadeIn == false) {
+				fading += 5;
+				if (fading >= 255 ) {
+					fading = 255;
+					app->render->camera.x = X;
+					app->render->camera.y = Y;
+					FadeIn = true;
+				}
+			}
+			if (fading > 0 && FadeIn == true) {
+				fading -= 5;
+				if (fading <= 0) {
+					fading = 0;
+					TP = false;
+				}
+			}
+		}
+		//If border animation is done or if theres no border, execute this
+		if (BorderAnimation == true && TP == false) {
+			//Only done once, to move camera and make sure camera doesnt go away
+			if (PosCalc == false) {
+				Xdif = app->render->camera.x - X;
+				Ydif = app->render->camera.y - Y;
+				Xsum = Xdif / Speed;
+				Ysum = Ydif / Speed;
+				if (app->render->camera.x >= X) {
+					XNeg = 0;
+				}
+				if (app->render->camera.x < X) {
+					XNeg = 1;
+				}
+				if (app->render->camera.y >= Y) {
+					YNeg = 0;
+				}
+				if (app->render->camera.y > Y) {
+					YNeg = 1;
+				}
+				PosCalc = true;
+			}
+			if (app->render->camera.x >= X) {
+				XPos = 0;
+			}
+			if (app->render->camera.x < X) {
+				XPos = 1;
+			}
+			if (app->render->camera.y >= Y) {
+				YPos = 0;
+			}
+			if (app->render->camera.y > Y) {
+				YPos = 1;
+			}
+			//Move camera X
+			if (app->render->camera.x != X) {
+				app->render->camera.x -= Xsum;
+				if (XNeg != XPos) {
+					app->render->camera.x = X;
+				}
+			}
+			//Move camera Y
+			if (app->render->camera.y != Y) {
+				app->render->camera.y -= Ysum;
+				if (YNeg != YPos) {
+					app->render->camera.y = Y;
+				}
+			}
+		}
 	}
 
-	// L12: Debug pathfinding
-	iPoint originScreen = app->map->MapToWorld(origin.x, origin.y);
-	app->render->DrawTexture(originTex, originScreen.x, originScreen.y);
-	*/
-	app->cutScene->Update();
 	return true;
+}
+
+void Scene::StartCutscene(int x, int y, bool bordered, bool tp, int speed, bool keepBorders) {
+	if (CutsceneStarted == true) {
+		EndCutscene();
+	}
+	CutsceneStarted = true;
+	Bordered = bordered;
+	TP = tp;
+	Speed = speed;
+	X = x;
+	Y = y;
+	XNeg = -1;
+	XPos = -1;
+	YNeg = -1;
+	YPos = -1;
+	if (Bordered == false) {
+		BorderAnimation = true;
+	}
+	KeepBorders = keepBorders;
+	if (KeepBorders == true) {
+		if (BorderOffset != 0) {
+			BorderAnimation = true;
+			Bordered = false;
+		}
+	}
+}
+
+void Scene::EndCutscene() {
+	CutsceneStarted = false;
+	Bordered = false;
+	X = 0;
+	Y = 0;
+	Speed = 100;
+	TP = false;
+	if (KeepBorders == false) {
+		BorderOffset = 0;
+	}
+	BorderAnimation = false;
+	PosCalc = false;
+	fading = 0;
+	FadeIn = false;
+	FinishCutsceneAux = false;
+}
+
+void Scene::FinishCutscene() {
+	FinishCutsceneAux = true;
 }
 
 // Called each loop iteration

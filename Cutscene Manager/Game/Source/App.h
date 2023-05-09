@@ -24,7 +24,6 @@ class Map;
 class Physics;
 class PathFinding;
 class GuiManager;
-class CutScene;
 
 class App
 {
@@ -98,7 +97,6 @@ public:
 	Physics* physics;
 	PathFinding* pathfinding;
 	GuiManager* guiManager;
-	CutScene* cutScene;
 
 private:
 

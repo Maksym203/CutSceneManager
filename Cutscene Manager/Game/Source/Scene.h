@@ -38,6 +38,11 @@ public:
 	// Define multiple Gui Event methods
 	bool OnGuiMouseClickEvent(GuiControl* control);
 
+	void StartCutscene(int x, int y, bool bordered, bool tp, int speed, bool keepBorders);
+
+	void EndCutscene();
+
+	void FinishCutscene();
 
 public:
 
@@ -53,7 +58,10 @@ private:
 	iPoint origin;
 	bool originSelected = false;
 
-	// L15: TODO 2: Declare a GUI Button and create it using the GuiManager
+	//Cutscene
+	bool CutsceneStarted = false, Bordered = false, TP = false, BorderAnimation = false, PosCalc = false, FadeIn = false, KeepBorders = true, FinishCutsceneAux = false;
+	int fading = 0, X,Xdif,Xsum, Y,Ydif,Ysum, Speed = 100, BorderOffset = 0, XNeg, YNeg, XPos, YPos;
+
 
 };
 
